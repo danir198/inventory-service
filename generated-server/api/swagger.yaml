@@ -1,0 +1,129 @@
+openapi: 3.0.0
+info:
+  title: Inventory Service API
+  description: API documentation for the Inventory Service
+  version: 1.0.0
+servers:
+- url: http://localhost:8080
+paths:
+  /products/{id}/availability:
+    get:
+      summary: Check product availability
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: quantity
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: Availability status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckAvailabilityResponse'
+        "400":
+          description: Invalid request
+        "404":
+          description: Product not found
+  /products/{id}/inventory:
+    put:
+      summary: Update product inventory
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateInventoryRequest'
+        required: true
+      responses:
+        "200":
+          description: Inventory update status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateInventoryResponse'
+        "400":
+          description: Invalid request
+        "404":
+          description: Product not found
+  /products/{id}:
+    get:
+      summary: Get product details
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Product details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        "404":
+          description: Product not found
+components:
+  schemas:
+    CheckAvailabilityResponse:
+      type: object
+      properties:
+        available:
+          type: boolean
+        message:
+          type: string
+      example:
+        available: true
+        message: message
+    UpdateInventoryRequest:
+      type: object
+      properties:
+        quantity:
+          type: integer
+    UpdateInventoryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      example:
+        success: true
+        message: message
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: number
+          format: float
+      example:
+        quantity: 0
+        price: 6.0274563
+        name: name
+        id: id
