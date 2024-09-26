@@ -4,6 +4,8 @@ package models
 import (
 	"net/http"
 
+	middleware "inventory-service/auth"
+
 	"github.com/gorilla/mux"
 )
 
@@ -22,6 +24,7 @@ type DbInventory struct {
 
 func (s *DbInventory) InitializeRoutes() *mux.Router {
 	router := mux.NewRouter()
+	router.Use(middleware.BasicAuth) // Apply the authentication middleware
 	router.HandleFunc("/products/{id}/availability", s.CheckAvailability).Methods("GET")
 	router.HandleFunc("/products/{id}/inventory", s.UpdateInventory).Methods("PUT")
 	router.HandleFunc("/products/{id}", s.GetProduct).Methods("GET")
