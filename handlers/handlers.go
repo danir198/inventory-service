@@ -7,17 +7,13 @@ import (
 	"log"
 	"net/http"
 
+	"inventory-service/models"
+
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-type InventoryServiceInterface interface {
-	CheckAvailability(w http.ResponseWriter, r *http.Request)
-	UpdateInventory(w http.ResponseWriter, r *http.Request)
-	GetProduct(w http.ResponseWriter, r *http.Request)
-}
 
 type InventoryService struct {
 	// Define the fields and methods of the InventoryService type
@@ -92,4 +88,63 @@ func (s *InventoryService) GetProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(result)
+}
+
+func (s *InventoryService) CreateProduct(w http.ResponseWriter, r *http.Request) {
+	var product models.Product
+	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Add logic to insert the product into the database
+	collection := s.DB.Collection("products")
+	_, err := collection.InsertOne(context.TODO(), product)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(product)
+}
+
+func (s *InventoryService) DeleteProduct(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	collection := s.DB.Collection("products")
+	filter := bson.M{"product_id": id}
+
+	result, err := collection.DeleteOne(context.TODO(), filter)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if result.DeletedCount == 0 {
+		http.Error(w, "Product not found", http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (s *InventoryService) ListProducts(w http.ResponseWriter, r *http.Request) {
+	collection := s.DB.Collection("products")
+	cursor, err := collection.Find(context.TODO(), bson.M{})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer cursor.Close(context.TODO())
+
+	var products []models.Product
+	if err := cursor.All(context.TODO(), &products); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(products)
 }

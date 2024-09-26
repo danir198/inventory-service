@@ -13,5 +13,17 @@ services:
       - mongo-data:/data/db
     command: mongod --bind_ip_all
 
+  app:
+    build: .
+    container_name: inventory-service
+    ports:
+      - "8080:8080"
+    environment:
+      MONGO_URI: mongodb://root:example@mongodb:27017
+      DATABASE_NAME: your_database_name
+      SERVER_ADDRESS: :8080
+    depends_on:
+      - mongodb
+
 volumes:
   mongo-data:

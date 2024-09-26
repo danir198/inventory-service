@@ -19,20 +19,19 @@ import (
 func main() {
 
 	// Load environment variables from .env file
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file")
+	if err := loadEnv(); err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
 	}
 
-	// Check if MONGO_URI is set
-	mongoURI := os.Getenv("MONGO_URI")
-	if mongoURI == "" {
-		log.Fatalf("required key MONGO_URI missing value")
+	mongoURI, databaseName, serverAddress := getEnvVars()
+	client, err := createMongoClient(mongoURI)
+	if err != nil {
+		log.Fatalf("Failed to create MongoDB client: %v", err)
 	}
 
 	// Connect to MongoDB
 	clientOptions := options.Client().ApplyURI(mongoURI)
-	client, err := mongo.NewClient(clientOptions)
+	client, err = mongo.NewClient(clientOptions)
 	if err != nil {
 		log.Fatalf("Failed to create MongoDB client: %v", err)
 	}
@@ -40,12 +39,11 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	err = client.Connect(ctx)
-	if err != nil {
-		log.Fatal("Failed to connect to MongoDB: %v", err)
+	if err := client.Connect(ctx); err != nil {
+		log.Fatalf("Failed to connect to MongoDB: %v", err)
 	}
 
-	db, err := models.InitializeDatabase(client, os.Getenv("DATABASE_NAME"))
+	db, err := models.InitializeDatabase(client, databaseName)
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
@@ -59,11 +57,39 @@ func main() {
 	}
 
 	dbInventory := &models.DbInventory{
-		InventoryService: *service,
+		InventoryService: service,
 	}
 
 	log.Printf("Server started")
 
 	router := dbInventory.InitializeRoutes()
-	log.Fatal(http.ListenAndServe(os.Getenv("SERVER_ADDRESS"), router))
+	log.Fatal(http.ListenAndServe(serverAddress, router))
+}
+
+func loadEnv() error {
+	return godotenv.Load()
+}
+
+func getEnvVars() (string, string, string) {
+	mongoURI := os.Getenv("MONGO_URI")
+	if mongoURI == "" {
+		log.Fatalf("required key MONGO_URI missing value")
+	}
+
+	databaseName := os.Getenv("DATABASE_NAME")
+	if databaseName == "" {
+		log.Fatalf("required key DATABASE_NAME missing value")
+	}
+
+	serverAddress := os.Getenv("SERVER_ADDRESS")
+	if serverAddress == "" {
+		log.Fatalf("required key SERVER_ADDRESS missing value")
+	}
+
+	return mongoURI, databaseName, serverAddress
+}
+
+func createMongoClient(mongoURI string) (*mongo.Client, error) {
+	clientOptions := options.Client().ApplyURI(mongoURI)
+	return mongo.NewClient(clientOptions)
 }
