@@ -4,12 +4,13 @@ package main
 
 import (
 	"context"
-	"inventory-service/handlers"
-	"inventory-service/models"
 	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/danir198/inventory-service/handlers"
+	"github.com/danir198/inventory-service/models"
 
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"

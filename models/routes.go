@@ -4,7 +4,9 @@ package models
 import (
 	"net/http"
 
-	middleware "inventory-service/auth"
+	middleware "github.com/danir198/inventory-service/auth"
+
+	"github.com/danir198/inventory-service/handlers"
 
 	"github.com/gorilla/mux"
 )
@@ -24,13 +26,25 @@ type DbInventory struct {
 
 func (s *DbInventory) InitializeRoutes() *mux.Router {
 	router := mux.NewRouter()
-	router.Use(middleware.BasicAuth) // Apply the authentication middleware
-	router.HandleFunc("/products/{id}/availability", s.CheckAvailability).Methods("GET")
-	router.HandleFunc("/products/{id}/inventory", s.UpdateInventory).Methods("PUT")
-	router.HandleFunc("/products/{id}", s.GetProduct).Methods("GET")
-	router.HandleFunc("/products", s.CreateProduct).Methods("POST")
-	router.HandleFunc("/products/{id}", s.DeleteProduct).Methods("DELETE")
-	router.HandleFunc("/products", s.ListProducts).Methods("GET")
+
+	authHandler := &handlers.AuthHandler{}
+	router.HandleFunc("/auth/token", authHandler.GenerateToken).Methods("POST")
+	apiRouter := router.PathPrefix("/").Subrouter()
+	apiRouter.Use(middleware.JWTAuth) // Apply the authentication middleware
+	apiRouter.HandleFunc("/products/{id}/availability", s.CheckAvailability).Methods("GET")
+	apiRouter.HandleFunc("/products/{id}/inventory", s.UpdateInventory).Methods("PUT")
+	apiRouter.HandleFunc("/products/{id}", s.GetProduct).Methods("GET")
+	apiRouter.HandleFunc("/products", s.CreateProduct).Methods("POST")
+	apiRouter.HandleFunc("/products/{id}", s.DeleteProduct).Methods("DELETE")
+	apiRouter.HandleFunc("/products", s.ListProducts).Methods("GET")
+
+	// router.Use(middleware.BasicAuth) // Apply the authentication middleware
+	// router.HandleFunc("/products/{id}/availability", s.CheckAvailability).Methods("GET")
+	// router.HandleFunc("/products/{id}/inventory", s.UpdateInventory).Methods("PUT")
+	// router.HandleFunc("/products/{id}", s.GetProduct).Methods("GET")
+	// router.HandleFunc("/products", s.CreateProduct).Methods("POST")
+	// router.HandleFunc("/products/{id}", s.DeleteProduct).Methods("DELETE")
+	// router.HandleFunc("/products", s.ListProducts).Methods("GET")
 	return router
 }
 

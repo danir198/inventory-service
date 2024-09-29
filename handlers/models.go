@@ -1,6 +1,6 @@
 // Step 2: Define main types and configuration
 // models/models.go
-package models
+package handlers
 
 type Product struct {
 	ID       string  `bson:"product_id" json:"id"`

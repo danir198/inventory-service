@@ -7,8 +7,6 @@ import (
 	"log"
 	"net/http"
 
-	"inventory-service/models"
-
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -91,7 +89,7 @@ func (s *InventoryService) GetProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *InventoryService) CreateProduct(w http.ResponseWriter, r *http.Request) {
-	var product models.Product
+	var product Product
 	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -139,7 +137,7 @@ func (s *InventoryService) ListProducts(w http.ResponseWriter, r *http.Request) 
 	}
 	defer cursor.Close(context.TODO())
 
-	var products []models.Product
+	var products []Product
 	if err := cursor.All(context.TODO(), &products); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
