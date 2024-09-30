@@ -31,12 +31,20 @@ func (s *DbInventory) InitializeRoutes() *mux.Router {
 	router.HandleFunc("/auth/token", authHandler.GenerateToken).Methods("POST")
 	apiRouter := router.PathPrefix("/").Subrouter()
 	apiRouter.Use(middleware.JWTAuth) // Apply the authentication middleware
-	apiRouter.HandleFunc("/products/{id}/availability", s.CheckAvailability).Methods("GET")
-	apiRouter.HandleFunc("/products/{id}/inventory", s.UpdateInventory).Methods("PUT")
-	apiRouter.HandleFunc("/products/{id}", s.GetProduct).Methods("GET")
-	apiRouter.HandleFunc("/products", s.CreateProduct).Methods("POST")
-	apiRouter.HandleFunc("/products/{id}", s.DeleteProduct).Methods("DELETE")
-	apiRouter.HandleFunc("/products", s.ListProducts).Methods("GET")
+
+	apiRouter.Handle("/products/{id}/availability", middleware.RequirePermission("check_availability", http.HandlerFunc(s.CheckAvailability))).Methods("GET")
+	apiRouter.Handle("/products/{id}/inventory", middleware.RequirePermission("update_product", http.HandlerFunc(s.UpdateInventory))).Methods("PUT")
+	apiRouter.Handle("/products/{id}", middleware.RequirePermission("view_product", http.HandlerFunc(s.GetProduct))).Methods("GET")
+	apiRouter.Handle("/products", middleware.RequirePermission("add_product", http.HandlerFunc(s.CreateProduct))).Methods("POST")
+	apiRouter.Handle("/products/{id}", middleware.RequirePermission("delete_product", http.HandlerFunc(s.DeleteProduct))).Methods("DELETE")
+	apiRouter.Handle("/products", middleware.RequirePermission("view_all_products", http.HandlerFunc(s.ListProducts))).Methods("GET")
+
+	// apiRouter.HandleFunc("/products/{id}/availability", s.CheckAvailability).Methods("GET")
+	// apiRouter.HandleFunc("/products/{id}/inventory", s.UpdateInventory).Methods("PUT")
+	// apiRouter.HandleFunc("/products/{id}", s.GetProduct).Methods("GET")
+	// apiRouter.HandleFunc("/products", s.CreateProduct).Methods("POST")
+	// apiRouter.HandleFunc("/products/{id}", s.DeleteProduct).Methods("DELETE")
+	// apiRouter.HandleFunc("/products", s.ListProducts).Methods("GET")
 
 	// router.Use(middleware.BasicAuth) // Apply the authentication middleware
 	// router.HandleFunc("/products/{id}/availability", s.CheckAvailability).Methods("GET")

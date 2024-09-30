@@ -9,12 +9,13 @@ import (
 )
 
 type AuthHandler struct{}
+type Credentials struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
 
 func (a *AuthHandler) GenerateToken(w http.ResponseWriter, r *http.Request) {
-	var creds struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
+	var creds Credentials
 
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -25,8 +26,12 @@ func (a *AuthHandler) GenerateToken(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
+	role := middleware.User
+	if creds.Username == "admin" {
+		role = middleware.Admin
+	}
 
-	token, err := middleware.GenerateToken(creds.Username)
+	token, err := middleware.GenerateToken(creds.Username, string(role))
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
