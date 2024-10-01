@@ -9,6 +9,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/danir198/inventory-service/db"
+
 	"github.com/danir198/inventory-service/handlers"
 	"github.com/danir198/inventory-service/models"
 
@@ -44,10 +46,16 @@ func main() {
 		log.Fatalf("Failed to connect to MongoDB: %v", err)
 	}
 
-	db, err := models.InitializeDatabase(client, databaseName)
-	if err != nil {
+	db := db.NewDatabase(client, databaseName)
+
+	if err := db.InitializeDatabase(); err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
+
+	// db, err := models.InitializeDatabase(client, databaseName)
+	// if err != nil {
+	// 	log.Fatalf("Failed to initialize database: %v", err)
+	// }
 
 	// Initialize logger
 	logger := log.New(os.Stdout, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)

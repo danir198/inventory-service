@@ -14,10 +14,12 @@ var rolePermissions = map[Role][]string{
 		"delete_product",
 		"view_all_products",
 		"manage_roles",
+		"search_products",
 	},
 	User: {
 		"view_product",
 		"check_availability",
+		"search_products",
 	},
 }
 

@@ -18,6 +18,7 @@ type InventoryService interface {
 	CreateProduct(w http.ResponseWriter, r *http.Request)
 	DeleteProduct(w http.ResponseWriter, r *http.Request)
 	ListProducts(w http.ResponseWriter, r *http.Request)
+	SearchProducts(w http.ResponseWriter, r *http.Request)
 }
 
 type DbInventory struct {
@@ -38,6 +39,7 @@ func (s *DbInventory) InitializeRoutes() *mux.Router {
 	apiRouter.Handle("/products", middleware.RequirePermission("add_product", http.HandlerFunc(s.CreateProduct))).Methods("POST")
 	apiRouter.Handle("/products/{id}", middleware.RequirePermission("delete_product", http.HandlerFunc(s.DeleteProduct))).Methods("DELETE")
 	apiRouter.Handle("/products", middleware.RequirePermission("view_all_products", http.HandlerFunc(s.ListProducts))).Methods("GET")
+	apiRouter.Handle("/products/search", middleware.RequirePermission("search_products", http.HandlerFunc(s.SearchProducts))).Methods("GET")
 
 	// apiRouter.HandleFunc("/products/{id}/availability", s.CheckAvailability).Methods("GET")
 	// apiRouter.HandleFunc("/products/{id}/inventory", s.UpdateInventory).Methods("PUT")
@@ -75,4 +77,8 @@ func (s *DbInventory) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 }
 func (s *DbInventory) ListProducts(w http.ResponseWriter, r *http.Request) {
 	s.InventoryService.ListProducts(w, r)
+}
+
+func (s *DbInventory) SearchProducts(w http.ResponseWriter, r *http.Request) {
+	s.InventoryService.SearchProducts(w, r)
 }
