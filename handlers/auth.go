@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"strings"
 
 	middleware "github.com/danir198/inventory-service/auth"
 )
@@ -12,6 +13,7 @@ type AuthHandler struct{}
 type Credentials struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+	Role     string `json:"role"`
 }
 
 func (a *AuthHandler) GenerateToken(w http.ResponseWriter, r *http.Request) {
@@ -22,7 +24,19 @@ func (a *AuthHandler) GenerateToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if creds.Username != os.Getenv("API_USERNAME") || creds.Password != os.Getenv("API_PASSWORD") {
+	// Split the API_USERNAME environment variable into a slice
+	validUsernames := strings.Split(os.Getenv("API_USERNAME"), ",")
+
+	isValidUsername := false
+
+	for _, validUsername := range validUsernames {
+		if creds.Username == validUsername {
+			isValidUsername = true
+			break
+		}
+	}
+
+	if !isValidUsername || creds.Password != os.Getenv("API_PASSWORD") {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
