@@ -3,10 +3,10 @@
 package handlers
 
 type Product struct {
-	ID       string  `bson:"product_id" json:"id"`
-	Name     string  `bson:"name" json:"name"`
-	Quantity int     `bson:"quantity" json:"quantity"`
-	Price    float64 `bson:"price" json:"price"`
+	ProductID string  `bson:"product_id" json:"product_id"`
+	Name      string  `bson:"name" json:"name"`
+	Quantity  int     `bson:"quantity" json:"quantity"`
+	Price     float64 `bson:"price" json:"price"`
 }
 
 type Config struct {
