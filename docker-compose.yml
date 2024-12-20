@@ -3,14 +3,14 @@ version: '3.8'
 services:
   mongodb:
     image: mongo:latest
-    container_name: mongodb
+    container_name: mongodb_inventory_service
     ports:
       - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
     volumes:
-      - mongo-data:/data/db
+      - mongo-inventory-data:/data/db
     command: mongod --bind_ip_all
 
   app:
@@ -19,11 +19,14 @@ services:
     ports:
       - "8080:8080"
     environment:
-      MONGO_URI: mongodb://root:example@mongodb:27017
+      MONGO_URI: mongodb://root:example@mongodb_inventory_service:27017
       DATABASE_NAME: your_database_name
       SERVER_ADDRESS: :8080
     depends_on:
       - mongodb
 
 volumes:
-  mongo-data:
+  mongo-inventory-data:
+
+networks:
+  backend:
