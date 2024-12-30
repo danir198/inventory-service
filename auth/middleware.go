@@ -55,6 +55,10 @@ const (
 
 func JWTAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if os.Getenv("ENABLE_AUTH") != "true" {
+			next.ServeHTTP(w, r)
+			return
+		}
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -88,7 +92,7 @@ func JWTAuth(next http.Handler) http.Handler {
 	})
 }
 
-func GenerateToken(username,role string) (string, error) {
+func GenerateToken(username, role string) (string, error) {
 	expirationSeconds, err := strconv.Atoi(os.Getenv("JWT_EXPIRATION"))
 	if err != nil {
 		return "", err
@@ -106,8 +110,13 @@ func GenerateToken(username,role string) (string, error) {
 
 func RequirePermission(permission string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if os.Getenv("ENABLE_AUTH") != "true" {
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		role, ok := r.Context().Value(ContextKeyUserRole).(Role)
-		if !ok||!HasPermission(role, permission) {
+		if !ok || !HasPermission(role, permission) {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
